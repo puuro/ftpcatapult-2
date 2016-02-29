@@ -11,6 +11,7 @@ $cmd=$argv[1];
 echo $cmd."\n";
 //echo "<asdf style='font-size:30px;'>".substr(time(), 7)."</asdf><br>";
 $commit=false;
+$anyway=false;
 $push=false;
 $pull=false;
 $init=false;
@@ -32,6 +33,8 @@ for($i=0;$i<count($argv);$i++){
 		$dry=true;
 	if($argv[$i]=="force")
 		$force=true;
+	if($argv[$i]=="anyway")
+		$anyway=true;
 	if($argv[$i]=="brave")
 		$brave=true;
 	if($argv[$i]=="list")
@@ -41,12 +44,25 @@ for($i=0;$i<count($argv);$i++){
 			$file_pull=true;
 		}
 }
+
 if($cmd=="commit") $commit=true;
 if($cmd=="push") $push=true;
 if($cmd=="fast") {$commit=true;$push=true;}
 if($cmd=="pull") $pull=true;
 if($cmd=="init") $init=true;
 if($cmd=="i'm_up_to_date") $know=true;
+if(count($argv)==1){
+	echo "init\n";
+	echo "push\n";
+	echo "push list\n";
+	echo "push anyway\n";
+	echo "pull\n";
+	echo "pull brave\n";
+	echo "pull local\n";
+	echo "pull force\n";
+	echo "pull file [FILE] (You must create folders manually)\n";
+	echo "i'm_up_to_date\n";
+	}
 if($know){
 	file_put_contents("files/lasts.ync", time());
 }
@@ -62,7 +78,7 @@ if($commit){
 }
 if($pull){
 	if($local){
-		echo_cmd("cp -r image/* ".$local_path);
+		echo_cmd("cp -r image/"."* ".$local_path);
 		exit();
 	}
 	// set up basic connection
@@ -92,7 +108,7 @@ if(!$dry)
 			if($brave)echo_cmd("mkdir ".$local_path.$conflict[$i]);
 			}
 			else{
-				echo $remote_path.$conflict[$i]."\n";
+				//echo $remote_path.$conflict[$i]."\n";
 				 if(ftp_get($conn_id, $image_path.$conflict[$i], $remote_path.$conflict[$i], FTP_ASCII)){
 					echo "get ".$conflict[$i].": OK";
 				}else{
@@ -143,6 +159,7 @@ if(!$dry)
 		for($i=0;$i<count($conflict);$i++){
 			echo "Conflict: ".$conflict[$i]."\n";
 		}
+		if(!$anyway)exit();
 	}	else echo "Check conflicts->OK\n";
 	//käy läpi joka tiedosto joka kansiossa
 			file_put_contents("files/ftpcatap.ult2", "");
