@@ -1,6 +1,6 @@
 # fictional-garbanzo
 FTP sync tool written in PHP for UNIX/LINUX/MAC. Only thing that is OS specific is some shell commands. Tip to Windows users: Virtualbox.<br>
-May be useful if you have only FTP connection to server and want to edit the files and if you hate FileZilla and if you don't want to keep track which files you have edited and if you don't want to send a whole directory to server after you have made a small change. So this tool enables you to edit files locally with editor you like and deploy them to server easily and fast and it enables you to do this from multiple computers and it enables your friends, too, to sync your files and help you.<br>
+May be useful if you have only FTP connection to server and want to edit the files and if you don't like doing development in a FTP client and if you don't want to keep track which files you have edited and if you don't want to send a whole directory to server after you have made a small change. So this tool enables you to edit files locally with editor you like and deploy them to server easily and fast and it enables you to do this from multiple computers and it enables your friends, too, to sync your files and help you.<br>
 
 INSTALLATION
 
