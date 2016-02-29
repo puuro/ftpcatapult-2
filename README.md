@@ -1,5 +1,5 @@
 # fictional-garbanzo
-FTP sync tool written in PHP for UNIX/LINUX/MAC. Only thing that is OS specific is some shell commands. Tip to Windows users: Virtualbox.<br>
+FTP sync tool/ website deployment tool written in PHP for UNIX/LINUX/MAC. Only thing that is OS specific is some shell "cp" and "mkdir" commands. Tip to Windows users: Virtualbox.<br>
 May be useful if you have only FTP connection to server and want to edit the files and if you don't like doing development in a FTP client and if you don't want to keep track which files you have edited and if you don't want to send a whole directory to server after you have made a small change. So this tool enables you to edit files locally with editor you like and deploy them to server easily and fast and it enables you to do this from multiple computers and it enables your friends, too, to sync your files and help you.<br>
 
 INSTALLATION
@@ -16,7 +16,7 @@ SOME EXPLANATION
 
 "image/" directory has an up-to-date image of your server contents, that's why it's called image. When you push files to server the tool compares your project directory and image directory and sees which files have changed. So comparison happens offline and is fast.<br>
 "files/" directory has some files that are used in determining which files should be pulled. They are also updated when pushing.<br>
-Tool maintains a list of all files and when they have changed. The file is located in the server and is downloaded every time you push or pull. It also keeps in memory when you have last pushed or pulled. When you pull it makes comparisons between those times to determine which files have changed and should be pulled.<br>
+Tool maintains a list of all files and when they have changed. The file is located in the server and is downloaded every time you push or pull. It also keeps in memory when you have last pushed or pulled from that computer. When you pull it makes comparisons between those times to determine which files have changed and should be pulled.<br>
 Multiple users can make changes to the files at the server. Users can pull the changes each of them has made.<br>
 Files are never deleted in server but they may be overwritten.<br>
 Files are never deleted locally either but they may be overwritten.<br>
