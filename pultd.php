@@ -16,6 +16,7 @@ $init=false;
 $know=false;
 $dry=false;
 $list=false;
+$file=false;
 $brave=false;
 if(isset($argv[2]))
 	if($argv[2]=="dry")
@@ -26,6 +27,12 @@ if(isset($argv[2]))
 if(isset($argv[2]))
 	if($argv[2]=="list")
 		$list=true;
+if(isset($argv[2]))
+	if($argv[2]=="file")
+		if(isset($argv[3])){
+			$file_pull_name=$argv[3];	
+			$file_pull=true;
+		}
 if($cmd=="commit") $commit=true;
 if($cmd=="push") $push=true;
 if($cmd=="fast") {$commit=true;$push=true;}
@@ -60,6 +67,9 @@ if(!$dry)
 	$rt_array=read_ftpcatapult();
 	$rt_assoc=get_assoc($rt_array);
 	$conflict=check_conflict($rt_array);	
+	if($file_pull){
+		$conflict[]=$file_pull_name;	
+	}
 	if(isset($conflict[0])){
 		for($i=0;$i<count($conflict);$i++){
 			if(substr($conflict[$i], -1)=="/"){
@@ -83,7 +93,7 @@ if(!$dry)
 
 	ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII);
 	ftp_close($conn_id);
-	echo "\nConflict: ".json_encode($conflict)."\n";
+	echo "\nPulled: ".json_encode($conflict)."\n";
 }
 if($push){
 	$pushed=array();
