@@ -33,5 +33,5 @@ pull: Pull files from server that have changed since last pull. They are downloa
 pull brave: Pull files from server that have changed since last pull. They are downloaded to image folder and project folder.<br>
 pull local: Copy files from image folder to project folder.<br>
 pull force: Pull everything from server.<br>
-pull file [FILE]: Pull a single file from server. You can edit and push single files, too. You don't need to have a whole project on your hard disk.<br>
+pull file [FILE]: Pull a single file from server. You can edit and push single files, too. You don't need to have a whole project on your hard disk. When using this command you have to create proper directories in image and project folder because this command doesn't create the needed directories. E.g. pull files css/css.css: you have to create mkdir image/css and mkdir [PROJECT DIR]/css.<br>
 i'm_up_to_date: If you know you're files are up to date you may use this command so files are not pulled that have changed before current time.<br>
