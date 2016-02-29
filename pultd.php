@@ -4,8 +4,9 @@ include("conf.php");
 $commit_path="commit/";
 $image_path="image/";
 
+	set_time_limit(0);
 //$cmd=$_POST['cmd'];
-var_dump($argv);
+//var_dump($argv);
 $cmd=$argv[1];
 echo $cmd."\n";
 //echo "<asdf style='font-size:30px;'>".substr(time(), 7)."</asdf><br>";
@@ -17,22 +18,29 @@ $know=false;
 $dry=false;
 $list=false;
 $file=false;
+$file_pull=false;
+$file_pull_name=false;
 $brave=false;
-if(isset($argv[2]))
-	if($argv[2]=="dry")
+$force=false;
+$local=false;
+$i=0;
+for($i=0;$i<count($argv);$i++){
+	echo $i.": ".$argv[$i]."\n";
+	if($argv[$i]=="local")
+		$local=true;
+	if($argv[$i]=="dry")
 		$dry=true;
-if(isset($argv[2]))
-	if($argv[2]=="brave")
+	if($argv[$i]=="force")
+		$force=true;
+	if($argv[$i]=="brave")
 		$brave=true;
-if(isset($argv[2]))
-	if($argv[2]=="list")
+	if($argv[$i]=="list")
 		$list=true;
-if(isset($argv[2]))
-	if($argv[2]=="file")
-		if(isset($argv[3])){
-			$file_pull_name=$argv[3];	
+	if($argv[$i]=="file" && isset($argv[$i+1])){
+			$file_pull_name=$argv[$i+1];	
 			$file_pull=true;
 		}
+}
 if($cmd=="commit") $commit=true;
 if($cmd=="push") $push=true;
 if($cmd=="fast") {$commit=true;$push=true;}
@@ -53,10 +61,15 @@ if($commit){
 	exit();
 }
 if($pull){
+	if($local){
+		echo_cmd("cp -r image/* ".$local_path);
+		exit();
+	}
 	// set up basic connection
-	
+	try{	
 	$conn_id = ftp_connect($ftp_server);
-
+	}
+	catch(Exception $e){exit();}
 	// login with username and password
 	$login_result = ftp_login($conn_id, $ftp_user_name, $ftp_user_pass);
 if(!$dry)
@@ -66,23 +79,26 @@ if(!$dry)
 	
 	$rt_array=read_ftpcatapult();
 	$rt_assoc=get_assoc($rt_array);
-	$conflict=check_conflict($rt_array);	
-	if($file_pull){
+	if(!$file_pull)
+		$conflict=check_conflict($rt_array, $force);	
+	else{
+		$conflict=array();
 		$conflict[]=$file_pull_name;	
 	}
 	if(isset($conflict[0])){
 		for($i=0;$i<count($conflict);$i++){
 			if(substr($conflict[$i], -1)=="/"){
 				shell_exec("mkdir ".$image_path.$conflict[$i]);
-			if($brave)cmd_echo("mkdir ".$local_path.$conflict[$i]);
+			if($brave)echo_cmd("mkdir ".$local_path.$conflict[$i]);
 			}
 			else{
+				echo $remote_path.$conflict[$i]."\n";
 				 if(ftp_get($conn_id, $image_path.$conflict[$i], $remote_path.$conflict[$i], FTP_ASCII)){
 					echo "get ".$conflict[$i].": OK";
 				}else{
 					echo "get ".$conflict[$i].": ERROR";
 				} 
-				if($brave)cmd_echo("cp ".$image_path.$conflict[$i]." ".$local_path.$conflict[$i]);
+				if($brave)echo_cmd("cp ".$image_path.$conflict[$i]." ".$local_path.$conflict[$i]);
 			}
 		}
 	}else echo "Everything was up to date.";
@@ -106,7 +122,6 @@ if($push){
 	$dir_list[]=substr($start_dir,0,$dir_length-1);
 	$dir_list=find_dir($start_dir, $dir_list);
 	
-	set_time_limit(0);
 	$file = '';
 	$remote_file = '';
 
@@ -122,7 +137,7 @@ if(!$dry)
 	} else echo "ftpcatap.ult<-virhe\n";
 	$rt_array=read_ftpcatapult();
 	$rt_assoc=get_assoc($rt_array);
-	$conflict=check_conflict($rt_array);	
+	$conflict=check_conflict($rt_array, false);	
 	if(isset($conflict[0])){
 		echo "Check conflicts->\n";
 		for($i=0;$i<count($conflict);$i++){
@@ -295,11 +310,15 @@ function write_ftpcatapult($rt_array, $rt_assoc){
 		file_put_contents("files/send_ftpcatap.ult", $file." ".$rt_assoc[$file]." \n", FILE_APPEND);
 	}
 }
-function check_conflict($rt_array){
+function check_conflict($rt_array, $force){
 	include("conf.php");
 	//checkaa conflikti	
 	$dl_array=array();
+	if(file_exists("files/lasts.ync"))
 	$last_push=file_get_contents("files/lasts.ync");	
+	else $last_push=1;
+	if($force)$last_push=1;
+	
 
 	for($i=1;$i<count($rt_array);$i=$i+2){
 		if($rt_array[$i]=="")continue;
