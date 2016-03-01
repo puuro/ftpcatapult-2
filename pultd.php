@@ -164,17 +164,28 @@ if($push){
 	
 	$file = '';
 	$remote_file = '';
-
 	// set up basic connection
-	
+	try{	
 	$conn_id = ftp_connect($ftp_server);
-
+	}
+	catch(Exception $e){
+		echo "Ftp connect->Error\n";
+		exit();
+	}
 	// login with username and password
 	$login_result = ftp_login($conn_id, $ftp_user_name, $ftp_user_pass);
-if(!$dry)
+	if($login_result){}else{
+		echo "Failed to login to ".$ftp_server.".\n";
+		exit();
+	}
+if(!$dry){
 	if(ftp_get($conn_id, "files/get_ftpcatap.ult", $remote_path."ftpcatap.ult", FTP_ASCII)) {
 		echo "ftpcatap.ult<-OK\n";
-	} else echo "ftpcatap.ult<-virhe\n";
+	} else {
+		echo "ftpcatap.ult<-virhe\n";
+		exit();
+	}
+	}
 	$rt_array=read_ftpcatapult();
 	$rt_assoc=get_assoc($rt_array);
 	$conflict=check_conflict($rt_array, false);	
@@ -306,8 +317,10 @@ if(!$dry)
 	}
 	ftp_close($conn_id);
 	//push();
-	copy_dir2($local_path, $image_path);
-	file_put_contents("files/lasts.ync", time());
+	if(!$list){
+		copy_dir2($local_path, $image_path);
+		file_put_contents("files/lasts.ync", time());
+	}
 	if(!$jotain){
 		echo "Nothing happens.";
 	}
