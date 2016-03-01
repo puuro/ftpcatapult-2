@@ -58,7 +58,7 @@ if($cmd=="push") $push=true;
 if($cmd=="fast") {$commit=true;$push=true;}
 if($cmd=="pull") $pull=true;
 if($cmd=="init") $init=true;
-if($cmd=="i'm_up_to_date") $know=true;
+if($cmd=="im_up_to_date") $know=true;
 if(count($argv)==1){
 	echo "init\n";
 	echo "push\n";
