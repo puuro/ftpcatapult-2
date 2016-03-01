@@ -18,6 +18,7 @@ $init=false;
 $know=false;
 $dry=false;
 $list=false;
+$copy=false;
 $file=false;
 $file_pull=false;
 $file_pull_name=false;
@@ -28,6 +29,8 @@ $filelist=false;
 $i=0;
 for($i=0;$i<count($argv);$i++){
 	echo $i.": ".$argv[$i]."\n";
+	if($argv[$i]=="copy")
+		$copy=true;
 	if($argv[$i]=="local")
 		$local=true;
 	if($argv[$i]=="dry")
@@ -70,13 +73,22 @@ if(count($argv)==1){
 	echo "pull force\n";
 	echo "pull file [FILE] (You must create folders manually)\n";
 	echo "pull filelist [DIR] (List files in a directory in server)\n";
+	echo "im_up_to_date\n";
+	echo "copy\n";
 	}
+if($copy){
+	$copydir=date('dmyHis');
+	echo_cmd("mkdir copy/".$copydir);
+	echo_cmd("cp -r ".$local_path."* copy/".$copydir."/");
+	exit();
+}
 if($know){
 	file_put_contents("files/lasts.ync", time());
 }
 if($init){
 	echo_cmd("mkdir files");
 	echo_cmd("mkdir image");
+	echo_cmd("mkdir copy");
 	echo_cmd("cp -r ".$local_path."* image/"); 
 	file_put_contents("files/lasts.ync", time());
 }
