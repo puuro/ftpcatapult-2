@@ -24,6 +24,7 @@ $file_pull_name=false;
 $brave=false;
 $force=false;
 $local=false;
+$filelist=false;
 $i=0;
 for($i=0;$i<count($argv);$i++){
 	echo $i.": ".$argv[$i]."\n";
@@ -37,6 +38,10 @@ for($i=0;$i<count($argv);$i++){
 		$anyway=true;
 	if($argv[$i]=="brave")
 		$brave=true;
+	if($argv[$i]=="filelist" && isset($argv[$i+1])){
+			$filelist_name=$argv[$i+1];	
+			$filelist=true;
+		}
 	if($argv[$i]=="list")
 		$list=true;
 	if($argv[$i]=="file" && isset($argv[$i+1])){
@@ -44,7 +49,10 @@ for($i=0;$i<count($argv);$i++){
 			$file_pull=true;
 		}
 }
-
+if($filelist && $file_pull){
+	echo "filelist and file arguments are not compatible.\n";
+	exit();
+}
 if($cmd=="commit") $commit=true;
 if($cmd=="push") $push=true;
 if($cmd=="fast") {$commit=true;$push=true;}
@@ -61,7 +69,7 @@ if(count($argv)==1){
 	echo "pull local\n";
 	echo "pull force\n";
 	echo "pull file [FILE] (You must create folders manually)\n";
-	echo "i'm_up_to_date\n";
+	echo "pull filelist [DIR] (List files in a directory in server)\n";
 	}
 if($know){
 	file_put_contents("files/lasts.ync", time());
@@ -102,11 +110,20 @@ if(!$dry)
 	
 	$rt_array=read_ftpcatapult();
 	$rt_assoc=get_assoc($rt_array);
+	echo "Files in ftpcatap.ult: ".count($rt_assoc)."\n";
 	if(!$file_pull)
 		$conflict=check_conflict($rt_array, $force);	
 	else{
 		$conflict=array();
 		$conflict[]=$file_pull_name;	
+	}
+	if($filelist){
+		$conflict=array();
+		$list=ftp_nlist($conn_id, $filelist_name);
+		foreach($list as $f){
+			echo $f."\n";
+		}
+		exit();
 	}
 	if(isset($conflict[0])){
 		for($i=0;$i<count($conflict);$i++){
@@ -340,8 +357,8 @@ function check_conflict($rt_array, $force){
 	$dl_array=array();
 	if(file_exists("files/lasts.ync"))
 	$last_push=file_get_contents("files/lasts.ync");	
-	else $last_push=1;
-	if($force)$last_push=1;
+	else $last_push="1";
+	if($force)$last_push="1";
 	
 
 	for($i=1;$i<count($rt_array);$i=$i+2){
