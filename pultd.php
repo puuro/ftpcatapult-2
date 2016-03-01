@@ -85,9 +85,16 @@ if($pull){
 	try{	
 	$conn_id = ftp_connect($ftp_server);
 	}
-	catch(Exception $e){exit();}
+	catch(Exception $e){
+		echo "Ftp connect->Error\n";
+		exit();
+	}
 	// login with username and password
 	$login_result = ftp_login($conn_id, $ftp_user_name, $ftp_user_pass);
+	if($login_result){}else{
+		echo "Failed to login to ".$ftp_server.".\n";
+		exit();
+	}
 if(!$dry)
 	if(ftp_get($conn_id, "files/get_ftpcatap.ult", $remote_path."ftpcatap.ult", FTP_ASCII)) {
 		echo "ftpcatap.ult<-OK\n";
@@ -110,9 +117,9 @@ if(!$dry)
 			else{
 				//echo $remote_path.$conflict[$i]."\n";
 				 if(ftp_get($conn_id, $image_path.$conflict[$i], $remote_path.$conflict[$i], FTP_ASCII)){
-					echo "get ".$conflict[$i].": OK";
+					echo "get ".$conflict[$i].": OK\n";
 				}else{
-					echo "get ".$conflict[$i].": ERROR";
+					echo "get ".$conflict[$i].": ERROR\n";
 				} 
 				if($brave)echo_cmd("cp ".$image_path.$conflict[$i]." ".$local_path.$conflict[$i]);
 			}
