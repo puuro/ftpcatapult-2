@@ -16,6 +16,7 @@ $push=false;
 $track=false;
 $pull=false;
 $init=false;
+$test=false;
 $know=false;
 $dry=false;
 $list=false;
@@ -43,6 +44,8 @@ for($i=0;$i<count($argv);$i++){
 		$track=true;
 	if($argv[$i]=="last")
 		$last=true;
+	if($argv[$i]=="test")
+		$test=true;
 	if($argv[$i]=="send")
 		$send=true;
 	if($argv[$i]=="copy")
@@ -92,6 +95,7 @@ if(count($argv)==1){
 	echo "push file [FILE] (You must create folders manually)\n";
 	echo "push dry\n";
 	echo "push track\n";
+	echo "push test\n";
 	echo "pull\n";
 	echo "pull brave\n";
 	echo "pull local\n";
@@ -99,6 +103,7 @@ if(count($argv)==1){
 	echo "pull file [FILE] (You must create folders manually)\n";
 	echo "pull filelist [DIR] (List files in a directory in server)\n";
 	echo "pull dry\n";
+	echo "pull test\n";
 	echo "uptodate\n";
 	echo "copy\n";
 	echo "cat get\n";
@@ -181,6 +186,10 @@ if(!$dry)
 	else{
 		$conflict=array();
 		$conflict[]=$file_pull_name;	
+	}
+	if($test){
+		echo "Test: ".json_encode($conflict)."\n";
+		exit();
 	}
 	if($filelist){
 		$conflict=array();
@@ -288,6 +297,7 @@ if(!$dry){
 		exit();
 	}
 			file_put_contents("files/ftpcatap.ult2", "");
+	$test_push=array();
 	$ignored=array();
 	$ignored[]="ohje.php";
 	$ignored[]="lasts.ync";
@@ -331,7 +341,10 @@ if(!$dry){
 					//kansiota ei ole
 					//FTP tee kansio
 					$newdir=$remote_path.$target.$f."/";
-					if (ftp_mkdir($conn_id, $newdir)) {
+					if($test){
+						$test_push[]=$target.$f."/";
+					}
+					else if (ftp_mkdir($conn_id, $newdir)) {
 					 echo "successfully created ".$newdir."\n";
 					$realfilename=substr($d."/".str_replace(" ","@",$f."/"), strlen($start_dir));
 					$rt_assoc[$realfilename]=time();
@@ -354,7 +367,10 @@ if(!$dry){
 					// upload a file
 					$file=$d."/".$f;
 					$remote_file=$remote_path.$target.$f;
-					if (ftp_put($conn_id, $remote_file, $file, FTP_ASCII)) {
+					if($test){
+						$test_push[]=$target.$f;
+					}
+					else if (ftp_put($conn_id, $remote_file, $file, FTP_ASCII)) {
 					 echo "successfully uploaded ".$f."\n";
 					$realfilename=substr($d."/".str_replace(" ","@",$f), strlen($start_dir));
 					$rt_assoc[$realfilename]=time();
@@ -375,7 +391,10 @@ if(!$dry){
 					// upload a file
 					$file=$d."/".$f;
 					$remote_file=$remote_path.$target.$f;
-					if (ftp_put($conn_id, $remote_file, $file, FTP_ASCII)) {
+					if($test){
+						$test_push[]=$target.$f;
+					}
+					else if (ftp_put($conn_id, $remote_file, $file, FTP_ASCII)) {
 					 echo " -> OK!\n";
 					$rt_assoc[$f]=time();
 					$pushed[]=$f;
@@ -406,7 +425,7 @@ if(!$dry){
 		//jos on: älä siirrä
 	//kopioi last_commit->last_push
 	write_ftpcatapult($rt_array, $rt_assoc);
-	if(isset($pushed[0]) || $track || $dry){
+	if((isset($pushed[0]) || $track || $dry) && !$test){
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII)){
 		echo "ftpcatap.ult->OK\n";
 	}else echo "ftpcatap.ult->virhe\n";
@@ -418,7 +437,7 @@ if(!$dry){
 	}else echo "ftpcatap.ult<-no";
 	ftp_close($conn_id);
 	//push();
-	if(!$list){
+	if(!$list && !$test){
 		copy_dir2($local_path, $image_path);
 		file_put_contents("files/lasts.ync", time());
 	}
@@ -428,6 +447,8 @@ if(!$dry){
 	echo "Push done\n\n";
 	echo "Conflict: ".json_encode($conflict)."\n";
 	echo "Pushed: ".json_encode($pushed)."\n";
+	if($test)
+	echo "Test: ".json_encode($test_push)."\n";
 }
 //$dir_list=array();
 function get_assoc($rt_array){
