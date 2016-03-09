@@ -20,15 +20,27 @@ $dry=false;
 $list=false;
 $copy=false;
 $file=false;
+$file_push=false;
+$file_push_name=false;
 $file_pull=false;
 $file_pull_name=false;
 $brave=false;
 $force=false;
 $local=false;
+$cat=false;
+$send=false;
+$get=false;
+$last=false;
 $filelist=false;
 $i=0;
 for($i=0;$i<count($argv);$i++){
 	echo $i.": ".$argv[$i]."\n";
+	if($argv[$i]=="get")
+		$get=true;
+	if($argv[$i]=="last")
+		$last=true;
+	if($argv[$i]=="send")
+		$send=true;
 	if($argv[$i]=="copy")
 		$copy=true;
 	if($argv[$i]=="local")
@@ -48,9 +60,13 @@ for($i=0;$i<count($argv);$i++){
 	if($argv[$i]=="list")
 		$list=true;
 	if($argv[$i]=="file" && isset($argv[$i+1])){
+			$file_push_name=$argv[$i+1];	
+			$file_push=true;
+	}
+	if($argv[$i]=="file" && isset($argv[$i+1])){
 			$file_pull_name=$argv[$i+1];	
 			$file_pull=true;
-		}
+	}
 }
 if($filelist && $file_pull){
 	echo "filelist and file arguments are not compatible.\n";
@@ -61,25 +77,44 @@ if($cmd=="push") $push=true;
 if($cmd=="fast") {$commit=true;$push=true;}
 if($cmd=="pull") $pull=true;
 if($cmd=="init") $init=true;
-if($cmd=="im_up_to_date") $know=true;
+if($cmd=="uptodate") $know=true;
+if($cmd=="cat") $cat=true;
 if(count($argv)==1){
 	echo "init\n";
 	echo "push\n";
 	echo "push list\n";
 	echo "push anyway\n";
+	echo "push file [FILE] (You must create folders manually)\n";
+	echo "push dry\n";
 	echo "pull\n";
 	echo "pull brave\n";
 	echo "pull local\n";
 	echo "pull force\n";
 	echo "pull file [FILE] (You must create folders manually)\n";
 	echo "pull filelist [DIR] (List files in a directory in server)\n";
-	echo "im_up_to_date\n";
+	echo "pull dry\n";
+	echo "uptodate\n";
 	echo "copy\n";
+	echo "cat get\n";
+	echo "cat send\n";
+	echo "cat last\n";
 	}
 if($copy){
 	$copydir=date('dmyHis');
 	echo_cmd("mkdir copy/".$copydir);
 	echo_cmd("cp -r ".$local_path."* copy/".$copydir."/");
+	exit();
+}
+if($cat){
+	if($send){
+		echo file_get_contents("files/send_ftpcatap.ult");
+	}
+	if($get){
+		echo file_get_contents("files/get_ftpcatap.ult");
+	}
+	if($last){
+		echo file_get_contents("files/lasts.ync")."\n";
+	}
 	exit();
 }
 if($know){
@@ -152,14 +187,17 @@ if(!$dry)
 				} 
 				if($brave)echo_cmd("cp ".$image_path.$conflict[$i]." ".$local_path.$conflict[$i]);
 			}
+			$MIL=1000*1000;
+			$microsec=0.5*$MIL;
+			usleep($microsec);
 		}
 	}else echo "Everything was up to date.";
 
 	file_put_contents("files/lasts.ync", time());
 
-	write_ftpcatapult($rt_array, $rt_assoc);
+	//write_ftpcatapult($rt_array, $rt_assoc);
 
-	ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII);
+	//ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII);
 	ftp_close($conn_id);
 	echo "\nPulled: ".json_encode($conflict)."\n";
 }
@@ -194,10 +232,10 @@ if(!$dry){
 	if(ftp_get($conn_id, "files/get_ftpcatap.ult", $remote_path."ftpcatap.ult", FTP_ASCII)) {
 		echo "ftpcatap.ult<-OK\n";
 	} else {
-		echo "ftpcatap.ult<-virhe\n";
+		echo "ftpcatap.ult<-error\n";
 		exit();
 	}
-	}
+	}else echo "ftpcatap.ult<-dry\n";
 	$rt_array=read_ftpcatapult();
 	$rt_assoc=get_assoc($rt_array);
 	$conflict=check_conflict($rt_array, false);	
@@ -209,6 +247,21 @@ if(!$dry){
 		if(!$anyway)exit();
 	}	else echo "Check conflicts->OK\n";
 	//käy läpi joka tiedosto joka kansiossa
+	if($file_push){
+		$remote_file=$remote_path.$file_push_name;
+		$local_file=$local_path.$file_push_name;
+		echo "FTP send file ".$local_file." -> ".$remote_file."\n";
+		if (ftp_put($conn_id, $remote_file, $local_file, FTP_ASCII)) {
+			if(isset($rt_assoc[$file_push_name])){
+				$rt_assoc[$file_push_name]=time();
+				write_ftpcatapult($rt_array, $rt_assoc);
+				if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII)){
+					echo "ftpcatap.ult->OK\n";
+				}else echo "ftpcatap.ult->virhe\n";
+			}
+		}else echo "Error in ftp_put\n";
+		exit();
+	}
 			file_put_contents("files/ftpcatap.ult2", "");
 	$ignored=array();
 	$ignored[]="ohje.php";
@@ -262,7 +315,6 @@ if(!$dry){
 					$pushed[]=$realfilename;
 					} else {
 					 echo "There was a problem while creating ".$newdir."\n";
-					 exit;
 					}
 				}
 			}
@@ -317,16 +369,16 @@ if(!$dry){
 		//jos on: älä siirrä
 	//kopioi last_commit->last_push
 	write_ftpcatapult($rt_array, $rt_assoc);
-	if(!$list){
+	if(isset($pushed[0])){
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII)){
 		echo "ftpcatap.ult->OK\n";
 	}else echo "ftpcatap.ult->virhe\n";
-	}else{
+	}else if($list){
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/ftpcatap.ult2", FTP_ASCII)){
 		echo "ftpcatap.ult2->OK\n";
 	}else echo "ftpcatap.ult2->virhe\n";
 
-	}
+	}else echo "ftpcatap.ult<-no";
 	ftp_close($conn_id);
 	//push();
 	if(!$list){
