@@ -176,6 +176,8 @@ if(!$dry)
 		}
 		exit();
 	}
+	$errors=array();
+	file_put_contents("files/pull_errors.txt", "");
 	if(isset($conflict[0])){
 		for($i=0;$i<count($conflict);$i++){
 			if(substr($conflict[$i], -1)=="/"){
@@ -188,6 +190,9 @@ if(!$dry)
 					echo "get ".$conflict[$i].": OK\n";
 				}else{
 					echo "get ".$conflict[$i].": ERROR\n";
+					$errors[]=$conflict[$i];
+					file_put_contents("files/pull_errors.txt", $conflict[$i]." \n", FILE_APPEND);
+					
 				} 
 				if($brave)echo_cmd("cp ".$image_path.$conflict[$i]." ".$local_path.$conflict[$i]);
 			}
@@ -204,6 +209,7 @@ if(!$dry)
 	//ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII);
 	ftp_close($conn_id);
 	echo "\nPulled: ".json_encode($conflict)."\n";
+	echo "Error: ".json_encode($errors)."\n";
 }
 if($push){
 	$pushed=array();
