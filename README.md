@@ -7,6 +7,7 @@ May be useful if you have only FTP connection to server and want to edit the fil
 
 Put pultd.php and conf.php files in a folder. Set variables in conf.php. Local path is the directory where you work with your code, e.g. "../work/". Remote path is path in server from your FTP home directory e.g. "/htdocs/".<br>
 If you don't have the project in your hard disk yet, save it now to the directory that you set in conf.php. You can also leave it empty if you wish to only pull single files from the server.<br>
+Rename `conf2.php` to `conf.php`.<br>
 Run `php pultd.php init`.<br>
 This creates directories in tool's folder.<br>
 Run `php pultd.php push list`.<br>
@@ -34,4 +35,4 @@ Run `php pultd.php` for a list of commands.<br>
 `pull local`: Copy files from image folder to project folder.<br>
 `pull force`: Pull everything from server.<br>
 `pull file [FILE]`: Pull a single file from server. You can edit and push single files, too. You don't need to have a whole project on your hard disk. When using this command you have to create proper directories in image and project folder because this command doesn't create the needed directories. E.g. pull files css/css.css: you have to create mkdir image/css and mkdir [PROJECT DIR]/css.<br>
-`i'm_up_to_date`: If you know you're files are up to date you may use this command so files are not pulled that have changed before current time.<br>
+`uptodate`: If you know you're files are up to date you may use this command so files are not pulled that have changed before current time.<br>
