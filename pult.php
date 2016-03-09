@@ -13,6 +13,7 @@ echo $cmd."\n";
 $commit=false;
 $anyway=false;
 $push=false;
+$track=false;
 $pull=false;
 $init=false;
 $know=false;
@@ -37,6 +38,8 @@ for($i=0;$i<count($argv);$i++){
 	echo $i.": ".$argv[$i]."\n";
 	if($argv[$i]=="get")
 		$get=true;
+	if($argv[$i]=="track")
+		$track=true;
 	if($argv[$i]=="last")
 		$last=true;
 	if($argv[$i]=="send")
@@ -86,6 +89,7 @@ if(count($argv)==1){
 	echo "push anyway\n";
 	echo "push file [FILE] (You must create folders manually)\n";
 	echo "push dry\n";
+	echo "push track\n";
 	echo "pull\n";
 	echo "pull brave\n";
 	echo "pull local\n";
@@ -259,6 +263,7 @@ if(!$dry){
 					echo "ftpcatap.ult->OK\n";
 				}else echo "ftpcatap.ult->virhe\n";
 			}
+			echo_cmd("cp ".$local_file." ".$image_path.$file_push_name);
 		}else echo "Error in ftp_put\n";
 		exit();
 	}
@@ -359,6 +364,18 @@ if(!$dry){
 					}			
 					
 				}
+				//file_put_contents("files/ftpcatap.ult2", substr($d."/".str_replace(" ","@",$f)."/ ".time()." \n", strlen($start_dir)), FILE_APPEND);
+				//tiedosto ei ole muuttunut.
+				else if(!isset($rt_assoc[substr($d."/".str_replace(" ","@",$f), strlen($start_dir))])){
+					echo $d."/".$f." is not in the file list.\n";	
+					if($track){
+						$realfilename=substr($d."/".str_replace(" ","@",$f), strlen($start_dir));
+						$rt_assoc[$realfilename]=time();
+						$rt_array[]=$realfilename;
+						$rt_array[]=time();
+						echo "->track\n";
+					}
+				}
 			}
 			}
 		}
@@ -369,7 +386,7 @@ if(!$dry){
 		//jos on: älä siirrä
 	//kopioi last_commit->last_push
 	write_ftpcatapult($rt_array, $rt_assoc);
-	if(isset($pushed[0])){
+	if(isset($pushed[0]) || $track || $dry){
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII)){
 		echo "ftpcatap.ult->OK\n";
 	}else echo "ftpcatap.ult->virhe\n";
