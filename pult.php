@@ -27,6 +27,7 @@ $file_pull=false;
 $file_pull_name=false;
 $brave=false;
 $force=false;
+$check=false;
 $local=false;
 $cat=false;
 $send=false;
@@ -82,6 +83,7 @@ if($cmd=="pull") $pull=true;
 if($cmd=="init") $init=true;
 if($cmd=="uptodate") $know=true;
 if($cmd=="cat") $cat=true;
+if($cmd=="check") $check=true;
 if(count($argv)==1){
 	echo "init\n";
 	echo "push\n";
@@ -134,6 +136,18 @@ if($init){
 if($commit){
 	echo "DEPRECATED";
 	exit();
+}
+if($check){
+	$rt_array=read_ftpcatapult();
+	$rt_assoc=get_assoc($rt_array);
+	echo "Files in ftpcatap.ult: ".count($rt_assoc)."\n";
+	for($i=0;$i<count($rt_array);$i=$i+2){
+		$file=$rt_array[$i];
+		if(is_dir($local_path.$file))continue;
+		if(!file_exists($local_path.$file)) echo $file." does not exist locally.\n";
+	}
+	exit();
+
 }
 if($pull){
 	if($local){
