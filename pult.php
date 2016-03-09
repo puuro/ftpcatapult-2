@@ -89,6 +89,7 @@ if(count($argv)==1){
 	echo "push anyway\n";
 	echo "push file [FILE] (You must create folders manually)\n";
 	echo "push dry\n";
+	echo "push track\n";
 	echo "pull\n";
 	echo "pull brave\n";
 	echo "pull local\n";
@@ -385,7 +386,7 @@ if(!$dry){
 		//jos on: älä siirrä
 	//kopioi last_commit->last_push
 	write_ftpcatapult($rt_array, $rt_assoc);
-	if(isset($pushed[0]) || $track){
+	if(isset($pushed[0]) || $track || $dry){
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII)){
 		echo "ftpcatap.ult->OK\n";
 	}else echo "ftpcatap.ult->virhe\n";
