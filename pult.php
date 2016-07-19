@@ -132,6 +132,10 @@ if($know){
 	file_put_contents("files/lasts.ync", time());
 }
 if($init){
+	if($local_path==""){
+		echo "Error: local_path in conf.php is not set.\n";
+		exit();
+	}
 	echo_cmd("mkdir files");
 	echo_cmd("mkdir image");
 	echo_cmd("mkdir copy");
