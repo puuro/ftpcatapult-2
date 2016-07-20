@@ -27,6 +27,7 @@ $file_push_name=false;
 $file_pull=false;
 $file_pull_name=false;
 $brave=false;
+$verbose=false;
 $force=false;
 $check=false;
 $local=false;
@@ -54,6 +55,8 @@ for($i=0;$i<count($argv);$i++){
 		$local=true;
 	if($argv[$i]=="dry")
 		$dry=true;
+	if($argv[$i]=="verbose")
+		$verbose=true;
 	if($argv[$i]=="force")
 		$force=true;
 	if($argv[$i]=="anyway")
@@ -197,8 +200,8 @@ if(!$dry)
 	}
 	if($filelist){
 		$conflict=array();
-		$list=ftp_nlist($conn_id, $filelist_name);
-		foreach($list as $f){
+		$list1=ftp_nlist($conn_id, $filelist_name);
+		foreach($list1 as $f){
 			echo $f."\n";
 		}
 		exit();
@@ -239,6 +242,7 @@ if(!$dry)
 	echo "Error: ".json_encode($errors)."\n";
 }
 if($push){
+	$untrackedfiles=0;
 	$pushed=array();
 	//hae dirlist last_commitista
 	$jotain=false;
@@ -358,6 +362,9 @@ if(!$dry){
 					} else {
 					 echo "There was a problem while creating ".$newdir."\n";
 					}
+					$MIL=1000*1000;
+					$microsec=0.5*$MIL;
+					usleep($microsec);
 				}
 			}
 			//mitä tehdään jokaiselle tiedostolle
@@ -375,6 +382,9 @@ if(!$dry){
 						$test_push[]=$target.$f;
 					}
 					else if (ftp_put($conn_id, $remote_file, $file, FTP_ASCII)) {
+			///***
+			if(!$all_cp)
+			echo_cmd("cp ".$file." ".$image_path.$target.$f);
 					 echo "successfully uploaded ".$f."\n";
 					$realfilename=substr($d."/".str_replace(" ","@",$f), strlen($start_dir));
 					$rt_assoc[$realfilename]=time();
@@ -384,6 +394,10 @@ if(!$dry){
 					} else {
 					 echo "There was a problem while uploading ".$file."\n";
 					}								
+					$MIL=1000*1000;
+					$microsec=0.5*$MIL;
+					usleep($microsec);
+					
 				}
 				else if(!files_are_equal($d."/".$f,$target_path)){
 					$jotain=true;
@@ -399,17 +413,25 @@ if(!$dry){
 						$test_push[]=$target.$f;
 					}
 					else if (ftp_put($conn_id, $remote_file, $file, FTP_ASCII)) {
+			///***
+			if(!$all_cp)
+			echo_cmd("cp ".$file." ".$image_path.$target.$f);
 					 echo " -> OK!\n";
 					$rt_assoc[$f]=time();
 					$pushed[]=$f;
 					} else {
 					 echo "There was a problem while uploading".$file."\n";
 					}			
+					$MIL=1000*1000;
+					$microsec=0.5*$MIL;
+					usleep($microsec);
 					
 				}
 				//file_put_contents("files/ftpcatap.ult2", substr($d."/".str_replace(" ","@",$f)."/ ".time()." \n", strlen($start_dir)), FILE_APPEND);
 				//tiedosto ei ole muuttunut.
 				else if(!isset($rt_assoc[substr($d."/".str_replace(" ","@",$f), strlen($start_dir))])){
+					$untrackedfiles=$untrackedfiles+1;
+					if($verbose)
 					echo $d."/".$f." is not in the file list.\n";	
 					if($track){
 						$realfilename=substr($d."/".str_replace(" ","@",$f), strlen($start_dir));
@@ -430,10 +452,12 @@ if(!$dry){
 	//kopioi last_commit->last_push
 	write_ftpcatapult($rt_array, $rt_assoc);
 	if((isset($pushed[0]) || $track || $dry) && !$test){
+	echo "Remote path:".$remote_path."\n";
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/send_ftpcatap.ult", FTP_ASCII)){
 		echo "ftpcatap.ult->OK\n";
 	}else echo "ftpcatap.ult->virhe\n";
 	}else if($list){
+	echo "Remote path:".$remote_path."\n";
 	if(ftp_put($conn_id, $remote_path."ftpcatap.ult", "files/ftpcatap.ult2", FTP_ASCII)){
 		echo "ftpcatap.ult2->OK\n";
 	}else echo "ftpcatap.ult2->virhe\n";
@@ -442,6 +466,7 @@ if(!$dry){
 	ftp_close($conn_id);
 	//push();
 	if(!$list && !$test){
+		if($all_cp)
 		copy_dir2($local_path, $image_path);
 		file_put_contents("files/lasts.ync", time());
 	}
@@ -453,6 +478,8 @@ if(!$dry){
 	echo "Pushed: ".json_encode($pushed)."\n";
 	if($test)
 	echo "Test: ".json_encode($test_push)."\n";
+	if($untrackedfiles>0)
+	echo "Untracked: ".$untrackedfiles."\n";
 }
 //$dir_list=array();
 function get_assoc($rt_array){
@@ -518,7 +545,7 @@ function find_dir($dir, $dir_list){
 	//$directories=array();
 	foreach ($files as $f){	
 		if(is_dir($dir.$f)&& $f!="." && $f!=".."){
-			if($f!="ftpcatapult" && $f!="lib"){
+			if($f!="kaupungit" && $f!="ftpcatapult" && $f!="lib"){
 				$dir_list[]=$dir.$f;
 				//echo $dir.$f."<br>";
 				//echo json_encode($dir_list);
