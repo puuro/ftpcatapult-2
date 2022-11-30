@@ -10,6 +10,7 @@ $image_path="image/";
 $cmd=$argv[1];
 echo $cmd."\n";
 //echo "<asdf style='font-size:30px;'>".substr(time(), 7)."</asdf><br>";
+$delete=false;
 $commit=false;
 $anyway=false;
 $push=false;
@@ -18,7 +19,7 @@ $pull=false;
 $init=false;
 $test=false;
 $know=false;
-$dry=false;
+$dry=false;    //vanhentunut komento ?????
 $list=false;
 $copy=false;
 $file=false;
@@ -39,6 +40,10 @@ $filelist=false;
 $i=0;
 for($i=0;$i<count($argv);$i++){
 	echo $i.": ".$argv[$i]."\n";
+	if($argv[$i]=="delete" && isset($argv[$i+1])){
+		$file_delete_name=$argv[$i+1];	
+		$delete=true;
+	}
 	if($argv[$i]=="get")
 		$get=true;
 	if($argv[$i]=="track")
@@ -92,21 +97,22 @@ if($cmd=="cat") $cat=true;
 if($cmd=="check") $check=true;
 if(count($argv)==1){
 	echo "init\n";
+	echo "delete [FILE]\n";
 	echo "push\n";
 	echo "push list\n";
 	echo "push anyway\n";
 	echo "push file [FILE] (You must create folders manually)\n";
-	echo "push dry\n";
+	echo "push dry   vanhentunut komento ?????\n";
 	echo "push track\n";
-	echo "push test\n";
+	echo "push test    toimii\n";
 	echo "pull\n";
 	echo "pull brave\n";
 	echo "pull local\n";
 	echo "pull force\n";
 	echo "pull file [FILE] (You must create folders manually)\n";
 	echo "pull filelist [DIR] (List files in a directory in server)\n";
-	echo "pull dry\n";
-	echo "pull test\n";
+	echo "pull dry    vanhentunut komento ????\n";
+	echo "pull test    toimii\n";
 	echo "uptodate\n";
 	echo "copy\n";
 	echo "cat get\n";
@@ -160,6 +166,34 @@ if($check){
 	}
 	exit();
 
+}
+if($delete){
+	// set up basic connection
+	try{	
+	$conn_id = ftp_connect($ftp_server);
+	}
+	catch(Exception $e){
+		echo "Ftp connect->Error\n";
+		exit();
+	}
+	// login with username and password
+	$login_result = ftp_login($conn_id, $ftp_user_name, $ftp_user_pass);
+	if($login_result){}else{
+		echo "Failed to login to ".$ftp_server.".\n";
+		exit();
+	}
+	if($file_delete_name){
+		$remote_file=$remote_path.$file_delete_name;
+		$local_file=$local_path.$file_delete_name;
+		echo "FTP delete file ".$remote_file."";
+		if (ftp_delete($conn_id, $remote_file)) {
+			echo "->OK\n";
+		}
+	} else {
+		echo "ei file-delete-namea.\n";
+		exit();
+	}
+	exit();
 }
 if($pull){
 	if($local){
@@ -312,7 +346,6 @@ if(!$dry){
 	$ignored[]=".DS_Store";
 	$ignored[]="ftpcatap.ult";
 	foreach($dir_list as $d){
-		
 		$target=substr($d,$dir_length)."/";
 		if($target=="/"){$target="";}
 		//echo "***".$d."\n";
@@ -343,6 +376,7 @@ if(!$dry){
 			}
 			if(!$list){
 			if(is_dir($d."/".$f)&& $f!="." && $f!=".."){
+				//echo "löytyi kansio: $f\n";
 				if(!file_exists($target_path)){
 					$jotain=true;
 					echo "FTP create directory ".$remote_path.$target.$f."/"."\n";
@@ -369,6 +403,7 @@ if(!$dry){
 			}
 			//mitä tehdään jokaiselle tiedostolle
 			else if(!is_dir($d."/".$f)&& $f!="." && $f!=".."){
+				//echo "löytyi tiedosto: $f\n";
 				if(!file_exists($target_path)){
 					$jotain=true;
 					echo $d."/".$f." is new.\n";
@@ -545,7 +580,7 @@ function find_dir($dir, $dir_list){
 	//$directories=array();
 	foreach ($files as $f){	
 		if(is_dir($dir.$f)&& $f!="." && $f!=".."){
-			if($f!="kaupungit" && $f!="ftpcatapult" && $f!="lib"){
+			if($f!="ftpcatapult"){
 				$dir_list[]=$dir.$f;
 				//echo $dir.$f."<br>";
 				//echo json_encode($dir_list);
